@@ -1,0 +1,86 @@
+#
+# Cookbook:: install_mar
+# Recipe:: default
+# Author:: Raphael Vergara (McAfee)
+#
+# Copyright:: 2020, The Authors, All Rights Reserved.
+
+
+# Get the temp directory irrespective of OS
+require 'tmpdir'
+temp = Dir.tmpdir()
+
+#set the installation directory where we will store the files
+installer_directory = "#{temp}/McAfee/mar"
+
+# Get the OS Platform
+os_platform = "#{node['platform']}"
+
+# Clean up, just in case something has been left over, we want to delete before & after
+directory "#{installer_directory}" do
+  recursive true
+  action :delete
+end
+
+# Create a McAfee folder to store files
+directory "#{installer_directory}" do
+  action :create
+  recursive true
+end
+
+# Set the installation source and options based on OS Platform
+if os_platform == "windows"
+    
+  # Set the installation source
+  installer_source = "MARSetup_x64.exe"
+
+  # Set the installation options
+  installer_options = "/install /quiet /norestart"
+  
+  # Move the MAR installation files into the directory we created
+  remote_directory "#{installer_directory}" do
+    source "mar" # <-- this is the platform directory in files/default/
+    action :create
+    recursive true                                                                      
+  end 
+
+  # Install
+  windows_package "McAfee Active Response" do
+    source            "#{installer_directory}/#{installer_source}"
+    options           "#{installer_options}"
+    installer_type    :custom
+    action            :install
+  end
+    
+ elsif os_platform == "centos"
+
+  # Set the installation source
+  installer_source = "setup.sh"
+  installer_options = "#{installer_directory}"
+  
+  # Move the MAR installation files into the directory we created
+  remote_directory "#{installer_directory}" do
+    source "mar" # <-- this is the platform directory in files/default/
+    files_owner 'root'                                                                 
+    files_group 'root'
+    files_mode '0755'
+    action :create
+    recursive true                                                                      
+  end 
+  
+  # Install McAfee Active Response
+  bash 'mcafee_ens' do
+    cwd   "#{installer_directory}"
+    code <<-EOH
+      yum -y install libstdc++.i686
+      ./#{installer_source} #{installer_options}
+      EOH
+  end
+
+ end
+
+# Clean up
+directory "#{installer_directory}" do
+  recursive true
+  action :delete
+end
