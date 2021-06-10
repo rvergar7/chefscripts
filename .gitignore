@@ -1,6 +1,9 @@
 # Chef
 .chef/*.pem
 .chef/encrypted_data_bag_secret
+.chef/local-mode-cache/
+clients/
+nodes/
 
 # Ruby
 .rake_test_cache
