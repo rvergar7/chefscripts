@@ -1,9 +1,14 @@
 #
 # Cookbook:: new_install_ma
-# Recipe:: ens_install
+# Recipe:: linux_ens
 #
 # Copyright:: 2021, The Authors, All Rights Reserved.
 #
+
+# Installs McAfee Endpoint Security Threat Prevention for Linux
+# Requires YUM and/or APT repository to have ENS packages  
+# See Readme for details
+
 
 package 'Install ENS' do
   case node[:platform]
@@ -11,7 +16,7 @@ package 'Install ENS' do
     package_name 'mcafeetp'
 
   when 'redhat', 'centos'
-    pacakage_name 'McAfeeTP'
+    package_name 'McAfeeTP'
 
   end
 
